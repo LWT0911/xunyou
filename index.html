@@ -4,13 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dino Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f7f7f7;
+        }
+        #game {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #fff;
+            border: 2px solid #000;
+        }
+        #dino {
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            width: 40px;
+            height: 40px;
+            background-color: green;
+            transition: bottom 0.3s ease;
+        }
+        .jump {
+            bottom: 60px; /* Jump height */
+        }
+        .cactus {
+            position: absolute;
+            bottom: 0;
+            width: 20px;
+            height: 40px;
+            background-color: brown;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="game-container">
-        <div id="dino"></div>
-        <div id="obstacle"></div>
-    </div>
-    <script src="script.js"></script>
+
+<div id="game">
+    <div id="dino"></div>
+    <div id="score">Score: 0</div>
+</div>
+
+<script>
+    const game = document.getElementById('game');
+    const dino = document.getElementById('dino');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let jumping = false;
+
+    document.addEventListener('keydown', function(event) {
+        if (event.code === 'Space') {
+            jump();
+        }
+    });
+
+    function jump() {
+        if (!jumping) {
+            jumping = true;
+            dino.classList.add('jump');
+            setTimeout(() => {
+                dino.classList.remove('jump');
+                jumping = false;
+            }, 300);
+        }
+    }
+
+    function createCactus() {
+        const cactus = document.createElement('div');
+        cactus.classList.add('cactus');
+        cactus.style.left = '100%';
+        game.appendChild(cactus);
+        moveCactus(cactus);
+    }
+
+    function moveCactus(cactus) {
+        let cactusPosition = game.clientWidth;
+        const timer = setInterval(() => {
+            if (cactusPosition < -20) {
+                clearInterval(timer);
+                game.removeChild(cactus);
+                score++;
+                scoreDisplay.innerText = 'Score: ' + score;
+            } else if (detectCollision(cactus)) {
+                clearInterval(timer);
+                alert('Game Over! Your score: ' + score);
+                resetGame();
+            } else {
+                cactusPosition -= 10;
+                cactus.style.left = cactusPosition + 'px';
+            }
+        }, 100);
+    }
+
+    function detectCollision(cactus) {
+        const dinoRect = dino.getBoundingClientRect();
+        const cactusRect = cactus.getBoundingClientRect();
+        return !(
+            dinoRect.top > cactusRect.bottom ||
+            dinoRect.bottom < cactusRect.top ||
+            dinoRect.right < cactusRect.left ||
+            dinoRect.left > cactusRect.right
+        );
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreDisplay.innerText = 'Score: 0';
+        game.innerHTML = '<div id="dino"></div><div id="score">Score: 0</div>';
+        createCactus();
+    }
+
+    setInterval(createCactus, 2000);
+</script>
+
 </body>
 </html>
